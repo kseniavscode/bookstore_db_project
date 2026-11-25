@@ -1,0 +1,27 @@
+{% extends 'store/base.html' %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h2 style="color: #472801; margin: 0;">Our Team (Staff Management)</h2>
+    <span style="font-size: 13px; color: #666;">Разграничение доступа: доступно ролям Admin и Manager</span>
+</div>
+
+<table class="admin_table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Role / Position</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for manager in managers %}
+        <tr>
+            <td>{{ manager.id }}</td>
+            <td><b>{{ manager.username }}</b></td>
+            <td><span class="badge_role">{{ manager.role }}</span></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

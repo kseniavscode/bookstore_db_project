@@ -1,0 +1,53 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/audit.css' %}">
+{% endblock %}
+
+{% block content %}
+<h2 class="page_heading">Журнал действий пользователей (Audit Log)</h2>
+<p class="audit_note">Доступно только администратору. Можно отменить добавление книги, оформление заказа, регистрацию пользователя или добавление в корзину.</p>
+
+<table class="styled_table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Дата и время</th>
+            <th>Пользователь</th>
+            <th>Действие</th>
+            <th>Объект</th>
+            <th>Описание</th>
+            <th>Откат</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for log in logs %}
+        <tr>
+            <td>#{{ log.0 }}</td>
+            <td>{{ log.1 }}</td>
+            <td><b>{{ log.2 }}</b></td>
+            <td>
+                <span class="action_tag {% if log.3 == 'UNDO' %}action_tag_brown{% endif %}">{{ log.3 }}</span>
+            </td>
+            <td>{{ log.4|default:"—" }} {% if log.5 %}(#{{ log.5 }}){% endif %}</td>
+            <td>{{ log.6 }}</td>
+            <td>
+                {% if '[ОТМЕНЕНО]' in log.6 or log.3 == 'UNDO' or log.3 == 'LOGIN' or log.3 == 'DELETE' or log.3 == 'REFRESH' %}
+                    <span class="reverted_label">{% if '[ОТМЕНЕНО]' in log.6 %}Отменено{% else %}—{% endif %}</span>
+                {% else %}
+                    <form method="POST" action="{% url 'undo_audit' log.0 %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn_outline btn_small">Отменить действие</button>
+                    </form>
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="7">Журнал действий пока пуст.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

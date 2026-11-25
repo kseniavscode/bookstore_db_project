@@ -1,0 +1,71 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Book Store — Информационная система</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <header class="site_header">
+        <div class="header_inner">
+            <a href="{% url 'catalog' %}" class="brand_logo">
+                Book<span class="brand_accent">Store</span>
+            </a>
+
+            <form method="GET" action="{% url 'catalog' %}" class="header_search_form">
+                <input type="text" name="q" value="{{ query|default:'' }}" class="header_search_input" placeholder="Поиск книг по названию...">
+                <button type="submit" class="btn btn_burgundy">Найти</button>
+            </form>
+
+            <div class="header_actions">
+                {% if request.session.username %}
+                    <span class="user_greeting">
+                        <b>{{ request.session.username }}</b> ({{ request.session.role }})
+                    </span>
+                    <a href="{% url 'cart' %}" class="btn btn_outline">Корзина</a>
+                    <a href="{% url 'logout' %}" class="btn btn_brown">Выйти</a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn btn_outline">Войти</a>
+                    <a href="{% url 'signup' %}" class="btn btn_burgundy">Регистрация</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    {% if request.session.role == 'Admin' or request.session.role == 'Manager' %}
+    <nav class="staff_subnav">
+        <div class="staff_subnav_inner">
+            <span class="subnav_label">Панель управления:</span>
+            <a href="{% url 'orders' %}" class="subnav_link">Заказы (Подтверждение)</a>
+            <a href="{% url 'books_manage' %}" class="subnav_link">Управление книгами</a>
+            <a href="{% url 'analytics' %}" class="subnav_link">Аналитика (MATERIALIZED VIEW)</a>
+            {% if request.session.role == 'Admin' %}
+                <a href="{% url 'staff' %}" class="subnav_link">Сотрудники и пользователи</a>
+                <a href="{% url 'audit' %}" class="subnav_link">Журнал логов (Audit + Отмена)</a>
+            {% endif %}
+        </div>
+    </nav>
+    {% endif %}
+
+    <main class="page_wrapper">
+        <div class="content_card">
+            {% if message %}
+                <div class="alert_box alert_success">{{ message }}</div>
+            {% endif %}
+            {% if error %}
+                <div class="alert_box alert_error">{{ error }}</div>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <footer class="site_footer">
+        BookStore Information System • PostgreSQL + Django
+    </footer>
+
+</body>
+</html>

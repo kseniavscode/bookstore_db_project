@@ -1,0 +1,27 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/auth.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="auth_card">
+    <h2 class="auth_title">Вход в систему</h2>
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form_field">
+            <label class="form_label">Логин (Username)</label>
+            <input type="text" name="username" class="form_control" required placeholder="Введите логин">
+        </div>
+        <div class="form_field">
+            <label class="form_label">Пароль</label>
+            <input type="password" name="password" class="form_control" required placeholder="Введите пароль">
+        </div>
+        <button type="submit" class="btn btn_burgundy form_submit_full">Войти</button>
+    </form>
+    <div class="auth_switch">
+        Нет учётной записи? <a href="{% url 'signup' %}" class="auth_link">Зарегистрироваться</a>
+    </div>
+</div>
+{% endblock %}

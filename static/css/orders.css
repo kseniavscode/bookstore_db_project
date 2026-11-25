@@ -1,0 +1,18 @@
+.orders_filter_bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+}
+
+.order_items_list {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 13px;
+}
+
+.order_actions_form {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}

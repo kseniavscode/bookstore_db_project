@@ -1,0 +1,55 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/auth.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="auth_card">
+    <h2 class="auth_title">Регистрация клиента</h2>
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form_field">
+            <label class="form_label">Логин (Username)</label>
+            <input type="text" name="username" class="form_control" required>
+        </div>
+        <div class="form_field">
+            <label class="form_label">Пароль</label>
+            <input type="password" name="password" class="form_control" required>
+        </div>
+        <div class="form_field">
+            <label class="form_label">Имя</label>
+            <input type="text" name="first_name" class="form_control" required>
+        </div>
+        <div class="form_field">
+            <label class="form_label">Фамилия</label>
+            <input type="text" name="last_name" class="form_control" required>
+        </div>
+        <div class="form_field">
+            <label class="form_label">Телефон (12 цифр)</label>
+            <input type="text" name="phone" class="form_control" required placeholder="375291234567" maxlength="12">
+        </div>
+        <div class="form_field">
+            <label class="form_label">Город</label>
+            <select name="city_id" class="form_control" required>
+                {% for c in cities %}
+                    <option value="{{ c.id }}">{{ c.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form_field">
+            <label class="form_label">Улица (необязательно)</label>
+            <input type="text" name="street" class="form_control">
+        </div>
+        <div class="form_field">
+            <label class="form_label">Дом (необязательно)</label>
+            <input type="text" name="num_house" class="form_control">
+        </div>
+        <button type="submit" class="btn btn_burgundy form_submit_full">Создать аккаунт</button>
+    </form>
+    <div class="auth_switch">
+        Уже есть аккаунт? <a href="{% url 'login' %}" class="auth_link">Войти</a>
+    </div>
+</div>
+{% endblock %}

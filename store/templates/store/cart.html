@@ -1,0 +1,120 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/cart.css' %}">
+{% endblock %}
+
+{% block content %}
+<h2 class="page_heading">Корзина и заказы</h2>
+
+{% if no_profile %}
+    <div class="cart_empty_box">
+        <p class="cart_empty_text">У текущей учётной записи (администратора/сотрудника) нет профиля покупателя.</p>
+        <a href="{% url 'catalog' %}" class="btn btn_brown">Вернуться в каталог</a>
+    </div>
+{% else %}
+    <div class="cart_section">
+        {% if items %}
+            <table class="styled_table">
+                <thead>
+                    <tr>
+                        <th>Книга</th>
+                        <th>ISBN</th>
+                        <th>Количество</th>
+                        <th>Цена за шт.</th>
+                        <th>Сумма</th>
+                        <th>Действие</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td><b>{{ item.book.title }}</b></td>
+                        <td>{{ item.book.isbn }}</td>
+                        <td>{{ item.quantity }} шт.</td>
+                        <td>{{ item.price }} BYN</td>
+                        <td><b>{{ item.subtotal }} BYN</b></td>
+                        <td>
+                            <a href="{% url 'remove_from_cart' item.id %}" class="btn btn_outline btn_small">Убрать</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="checkout_panel">
+                <div class="checkout_total">Итого к оплате: {{ total_sum }} BYN</div>
+                <form method="POST" action="{% url 'checkout' %}" class="checkout_form">
+                    {% csrf_token %}
+                    <label for="delivery_method">Способ получения:</label>
+                    <select name="delivery_method" id="delivery_method" class="checkout_select">
+                        <option value="pickup">Самовывоз</option>
+                        <option value="courier">Курьер</option>
+                    </select>
+                    <button type="submit" class="btn btn_burgundy">Оформить заказ</button>
+                </form>
+            </div>
+        {% else %}
+            <div class="cart_empty_box">
+                <p class="cart_empty_text">Ваша корзина пуста. Нет активных заказов.</p>
+                <a href="{% url 'catalog' %}" class="btn btn_burgundy">Перейти в каталог</a>
+            </div>
+        {% endif %}
+    </div>
+
+    {% if past_orders %}
+    <h3 class="sub_heading">История ваших заказов</h3>
+    <table class="styled_table">
+        <thead>
+            <tr>
+                <th>Заказ #</th>
+                <th>Дата создания</th>
+                <th>Доставка</th>
+                <th>Статус</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for po in past_orders %}
+            <tr>
+                <td><b>#{{ po.id }}</b></td>
+                <td>{{ po.created_at }}</td>
+                <td>{{ po.delivery_method }}</td>
+                <td>
+                    {% if po.status == 'processing' %}
+                        <span class="badge badge_burgundy">Оформлен (processing)</span>
+                    {% elif po.status == 'completed' %}
+                        <span class="badge">Готов / Завершён (completed)</span>
+                    {% else %}
+                        <span class="badge badge_burgundy">{{ po.status }}</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    {% if waitlists %}
+    <h3 class="sub_heading">Ваш лист ожидания (WaitList)</h3>
+    <table class="styled_table">
+        <thead>
+            <tr>
+                <th>Книга</th>
+                <th>ISBN</th>
+                <th>Дата добавления</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for w in waitlists %}
+            <tr>
+                <td><b>{{ w.book.title }}</b></td>
+                <td>{{ w.book.isbn }}</td>
+                <td>{{ w.added_at }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+{% endif %}
+{% endblock %}

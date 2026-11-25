@@ -1,0 +1,42 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/analytics.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="analytics_top_bar">
+    <div>
+        <h2 class="page_heading">Аналитика издательств (MATERIALIZED VIEW)</h2>
+        <p class="analytics_note">Данные загружаются напрямую из материализованного представления <b>mv_imprint_statistics</b>.</p>
+    </div>
+    <form method="POST">
+        {% csrf_token %}
+        <button type="submit" name="act" value="refresh" class="btn btn_burgundy">Обновить статистику (REFRESH)</button>
+    </form>
+</div>
+
+<table class="styled_table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Издательство</th>
+            <th>Количество книг</th>
+            <th>Общая стоимость на складе</th>
+            <th>Средняя цена</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in stats %}
+        <tr>
+            <td>{{ row.0 }}</td>
+            <td><b>{{ row.1 }}</b></td>
+            <td>{{ row.2 }}</td>
+            <td>{{ row.3|default:"0.00" }} BYN</td>
+            <td>{{ row.4|default:"0.00" }} BYN</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

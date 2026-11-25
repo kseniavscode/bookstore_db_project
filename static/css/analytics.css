@@ -1,0 +1,14 @@
+.analytics_top_bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.analytics_note {
+    margin: 0;
+    font-size: 14px;
+    color: #5c401c;
+}

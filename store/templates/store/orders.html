@@ -1,0 +1,66 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/orders.css' %}">
+{% endblock %}
+
+{% block content %}
+<h2 class="page_heading">Подтверждение и управление заказами</h2>
+
+<div class="orders_filter_bar">
+    <a href="{% url 'orders' %}?status=processing" class="btn {% if status_filter == 'processing' %}btn_burgundy{% else %}btn_outline{% endif %}">Оформлены (processing)</a>
+    <a href="{% url 'orders' %}?status=completed" class="btn {% if status_filter == 'completed' %}btn_burgundy{% else %}btn_outline{% endif %}">Готовы (completed)</a>
+    <a href="{% url 'orders' %}?status=new" class="btn {% if status_filter == 'new' %}btn_burgundy{% else %}btn_outline{% endif %}">В корзинах (new)</a>
+    <a href="{% url 'orders' %}?status=cancelled" class="btn {% if status_filter == 'cancelled' %}btn_burgundy{% else %}btn_outline{% endif %}">Отменены (cancelled)</a>
+    <a href="{% url 'orders' %}?status=all" class="btn {% if status_filter == 'all' %}btn_burgundy{% else %}btn_outline{% endif %}">Все</a>
+</div>
+
+<table class="styled_table">
+    <thead>
+        <tr>
+            <th>Заказ #</th>
+            <th>Клиент</th>
+            <th>Город и доставка</th>
+            <th>Состав заказа</th>
+            <th>Статус</th>
+            <th>Подтверждение</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for entry in orders_list %}
+        <tr>
+            <td><b>#{{ entry.order.id }}</b></td>
+            <td>{{ entry.order.client.first_name }} {{ entry.order.client.last_name }}</td>
+            <td>{{ entry.order.city.name }} ({{ entry.order.delivery_method }})</td>
+            <td>
+                <ul class="order_items_list">
+                    {% for item in entry.items %}
+                        <li>{{ item.book.title }} — {{ item.quantity }} шт. ({{ item.price_at_time }} BYN)</li>
+                    {% empty %}
+                        <li>Нет позиций</li>
+                    {% endfor %}
+                </ul>
+            </td>
+            <td><span class="badge">{{ entry.order.status }}</span></td>
+            <td>
+                <form method="POST" class="order_actions_form">
+                    {% csrf_token %}
+                    <input type="hidden" name="order_id" value="{{ entry.order.id }}">
+                    {% if entry.order.status != 'completed' %}
+                        <button type="submit" name="new_status" value="completed" class="btn btn_brown btn_small">Готов к получению</button>
+                    {% endif %}
+                    {% if entry.order.status != 'cancelled' %}
+                        <button type="submit" name="new_status" value="cancelled" class="btn btn_burgundy btn_small">Отменить</button>
+                    {% endif %}
+                </form>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6">Заказов с выбранным статусом не найдено.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

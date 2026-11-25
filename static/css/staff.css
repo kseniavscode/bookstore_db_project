@@ -1,0 +1,40 @@
+.staff_toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.staff_tabs {
+    display: flex;
+    gap: 10px;
+}
+
+.inline_input {
+    width: 100%;
+    padding: 7px 10px;
+    border: 1px solid #c7bdb5;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 14px;
+    color: #472801;
+    background-color: #ffffff;
+}
+
+.inline_input:focus {
+    outline: none;
+    border-color: #610303;
+}
+
+.actions_cell {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.add_row {
+    background-color: #faf8f7;
+    border-top: 2px solid #472801;
+}

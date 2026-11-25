@@ -1,0 +1,370 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/books_manage.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="manage_top_bar">
+    <h2 class="page_heading">Управление каталогом книг</h2>
+    <div class="manage_controls">
+        <form method="GET" class="manage_search_form">
+            <input type="text" name="q" value="{{ q }}" placeholder="Поиск по названию или ISBN..." class="manage_search_input">
+            <button type="submit" class="btn btn_outline">Найти</button>
+        </form>
+        <button type="button" id="openBookModalBtn" class="btn btn_burgundy">+ Добавить книгу / Поставка</button>
+    </div>
+</div>
+
+<!-- Модальное окно добавления книги / приёмки поставки -->
+<div id="bookModal" class="modal_overlay hidden">
+    <div class="modal_card">
+        <div class="modal_header">
+            <h3 class="modal_title">Карточка поступления книги</h3>
+            <button type="button" id="closeBookModalBtn" class="modal_close_btn">&times;</button>
+        </div>
+
+        <!-- Шаг 1: Поиск по ISBN -->
+        <div class="isbn_lookup_box">
+            <label class="field_label_sm" for="isbnLookupInput">Поиск по ISBN или названию книги (БД + Open Library API)</label>
+            <div class="isbn_lookup_row">
+                <input type="text" id="isbnLookupInput" class="inline_input_sm" placeholder="Например: 9780316310277 или Harry Potter">
+                <button type="button" id="lookupIsbnBtn" class="btn btn_brown btn_small">Найти</button>
+            </div>
+            <p id="isbnStatusMsg" class="isbn_status_msg hidden"></p>
+            <div id="apiResultsList" class="api_results_list hidden"></div>
+        </div>
+
+        <!-- Режим приёмки поставки (если ISBN уже есть в базе) -->
+        <form method="POST" id="restockForm" class="restock_panel hidden">
+            {% csrf_token %}
+            <input type="hidden" name="act" value="restock">
+            <input type="hidden" name="isbn" id="restockIsbn">
+
+            <div class="restock_info">
+                Книга: <b id="restockTitle"></b> • Текущий остаток: <b id="restockCurrentQty"></b> шт.
+            </div>
+
+            <div class="book_form_grid">
+                <div>
+                    <label class="field_label_sm">Добавить экземпляров (+ шт.)</label>
+                    <input type="number" name="add_quantity" min="1" value="10" class="inline_input_sm" required>
+                </div>
+                <div>
+                    <label class="field_label_sm">Актуальная цена (BYN)</label>
+                    <input type="number" step="0.01" name="price" id="restockPrice" class="inline_input_sm" required>
+                </div>
+            </div>
+
+            <div class="modal_actions">
+                <button type="submit" class="btn btn_burgundy">Принять поставку</button>
+                <button type="button" id="switchToManualBtn" class="btn btn_outline">Ввести другой ISBN</button>
+            </div>
+        </form>
+
+        <!-- Режим создания новой книги (автозаполнение из Open Library API или вручную) -->
+        <form method="POST" enctype="multipart/form-data" id="newBookForm">
+            {% csrf_token %}
+            <input type="hidden" name="act" value="add">
+            <input type="hidden" name="cover_url" id="coverUrlInput">
+
+            <div class="modal_body_split">
+                <div class="cover_preview_col">
+                    <img id="coverPreviewImg" src="{% static 'img/default_cover.png' %}" alt="Превью обложки" class="modal_cover_preview">
+                    <label class="field_label_sm">Загрузить обложку</label>
+                    <input type="file" name="cover_file" id="coverFileInput" accept="image/*" class="file_input_sm">
+                </div>
+
+                <div class="fields_col">
+                    <div class="book_form_grid">
+                        <div>
+                            <label class="field_label_sm">ISBN (13 цифр) *</label>
+                            <input type="text" name="isbn" id="newIsbnInput" class="inline_input_sm" required placeholder="9785000009999" maxlength="17">
+                        </div>
+                        <div>
+                            <label class="field_label_sm">Название книги *</label>
+                            <input type="text" name="title" id="newTitleInput" class="inline_input_sm" required placeholder="Название">
+                        </div>
+                        <div>
+                            <label class="field_label_sm">Автор(ы) через запятую *</label>
+                            <input type="text" name="authors_text" id="newAuthorsInput" list="authorsDatalist" class="inline_input_sm" required placeholder="Холли Блэк, Лия Арден">
+                            <datalist id="authorsDatalist">
+                                {% for a in authors %}
+                                    <option value="{{ a.first_name }} {{ a.last_name }}">
+                                {% endfor %}
+                            </datalist>
+                        </div>
+                        <div>
+                            <label class="field_label_sm">Издательство *</label>
+                            <input type="text" name="imprint_name" id="newImprintInput" list="imprintsDatalist" class="inline_input_sm" required placeholder="Эксмо">
+                            <datalist id="imprintsDatalist">
+                                {% for imp in imprints %}
+                                    <option value="{{ imp.name }}">
+                                {% endfor %}
+                            </datalist>
+                        </div>
+                        <div>
+                            <label class="field_label_sm">Язык *</label>
+                            <select name="language_id" class="inline_input_sm">
+                                {% for l in languages %}
+                                    <option value="{{ l.id }}">{{ l.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="field_label_sm">Цена продажи (BYN) *</label>
+                            <input type="number" step="0.01" name="price" class="inline_input_sm" required placeholder="29.90">
+                        </div>
+                        <div>
+                            <label class="field_label_sm">Количество (шт.) *</label>
+                            <input type="number" name="quantity" class="inline_input_sm" required value="10">
+                        </div>
+                        <div>
+                            <label class="field_label_sm">Год издания</label>
+                            <input type="number" name="publication_year" id="newYearInput" class="inline_input_sm" placeholder="2024">
+                        </div>
+                        <div>
+                            <label class="field_label_sm">Страниц</label>
+                            <input type="number" name="page_count" id="newPagesInput" class="inline_input_sm" placeholder="384">
+                        </div>
+                    </div>
+
+                    <div class="form_block_sm">
+                        <label class="field_label_sm">Жанры (можно выбрать несколько)</label>
+                        <div class="genres_pills">
+                            {% for g in genres %}
+                            <label class="genre_checkbox_label">
+                                <input type="checkbox" name="genre_ids" value="{{ g.id }}">
+                                <span>{{ g.name }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="form_block_sm">
+                        <label class="field_label_sm">Аннотация</label>
+                        <textarea name="summary" id="newSummaryInput" rows="2" class="inline_input_sm" placeholder="Краткое описание книги..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal_actions">
+                <button type="submit" class="btn btn_burgundy">Сохранить книгу в каталог</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Таблица книг -->
+<table class="styled_table">
+    <thead>
+        <tr>
+            <th>Обложка</th>
+            <th>ISBN</th>
+            <th>Название</th>
+            <th>Издательство</th>
+            <th>Цена (BYN)</th>
+            <th>Остаток</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for b in books %}
+        <tr>
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="isbn" value="{{ b.isbn }}">
+                <td>
+                    {% if b.cover %}
+                        <img src="{% url 'book_cover' b.isbn %}" alt="{{ b.title }}" class="table_cover_thumb">
+                    {% else %}
+                        <img src="{% static 'img/default_cover.svg' %}" alt="Нет обложки" class="table_cover_thumb">
+                    {% endif %}
+                </td>
+                <td>{{ b.isbn }}</td>
+                <td><b>{{ b.title }}</b></td>
+                <td>{{ b.imprint.name }}</td>
+                <td><input type="number" step="0.01" name="price" value="{{ b.price }}" class="inline_num_input"></td>
+                <td><input type="number" name="quantity" value="{{ b.quantity }}" class="inline_num_input"></td>
+                <td class="book_row_actions">
+                    <button type="submit" name="act" value="update" class="btn btn_brown btn_small">Сохранить</button>
+                    <button type="submit" name="act" value="delete" class="btn btn_burgundy btn_small">Удалить</button>
+                </td>
+            </form>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="7">Книги не найдены.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% if page_obj.paginator.num_pages > 1 %}
+<nav class="pagination_bar">
+    {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q|urlencode }}{% endif %}" class="page_link">← Назад</a>
+    {% else %}
+        <span class="page_link page_disabled">← Назад</span>
+    {% endif %}
+
+    {% for p in page_range %}
+        {% if p == ellipsis %}
+            <span class="page_dots">…</span>
+        {% elif p == page_obj.number %}
+            <span class="page_link page_active">{{ p }}</span>
+        {% else %}
+            <a href="?page={{ p }}{% if q %}&q={{ q|urlencode }}{% endif %}" class="page_link">{{ p }}</a>
+        {% endif %}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q|urlencode }}{% endif %}" class="page_link">Вперёд →</a>
+    {% else %}
+        <span class="page_link page_disabled">Вперёд →</span>
+    {% endif %}
+</nav>
+{% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('bookModal');
+    const openBtn = document.getElementById('openBookModalBtn');
+    const closeBtn = document.getElementById('closeBookModalBtn');
+    const lookupBtn = document.getElementById('lookupIsbnBtn');
+    const isbnLookupInput = document.getElementById('isbnLookupInput');
+    const newIsbnInput = document.getElementById('newIsbnInput');
+    const statusMsg = document.getElementById('isbnStatusMsg');
+    const apiResultsList = document.getElementById('apiResultsList');
+    const restockForm = document.getElementById('restockForm');
+    const newBookForm = document.getElementById('newBookForm');
+    const switchToManualBtn = document.getElementById('switchToManualBtn');
+    const coverFileInput = document.getElementById('coverFileInput');
+    const coverPreviewImg = document.getElementById('coverPreviewImg');
+    const defaultCoverSrc = coverPreviewImg.src;
+
+    function fillNewBookForm(item) {
+        restockForm.classList.add('hidden');
+        newBookForm.classList.remove('hidden');
+        newIsbnInput.value = item.isbn || '';
+        document.getElementById('newTitleInput').value = item.title || '';
+        document.getElementById('newAuthorsInput').value = item.authors || '';
+        document.getElementById('newImprintInput').value = item.imprint || '';
+        document.getElementById('newPagesInput').value = item.pages || '';
+        document.getElementById('newYearInput').value = item.year || '';
+        document.getElementById('newSummaryInput').value = item.summary || '';
+        if (item.cover_url) {
+            document.getElementById('coverUrlInput').value = item.cover_url;
+            coverPreviewImg.src = item.cover_url;
+        } else {
+            document.getElementById('coverUrlInput').value = '';
+            coverPreviewImg.src = defaultCoverSrc;
+        }
+    }
+
+    openBtn.addEventListener('click', function() {
+        modal.classList.remove('hidden');
+    });
+
+    closeBtn.addEventListener('click', function() {
+        modal.classList.add('hidden');
+    });
+
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) modal.classList.add('hidden');
+    });
+
+    switchToManualBtn.addEventListener('click', function() {
+        restockForm.classList.add('hidden');
+        newBookForm.classList.remove('hidden');
+        statusMsg.classList.add('hidden');
+        apiResultsList.classList.add('hidden');
+        isbnLookupInput.value = '';
+        newIsbnInput.value = '';
+    });
+
+    coverFileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            coverPreviewImg.src = URL.createObjectURL(file);
+            document.getElementById('coverUrlInput').value = '';
+        }
+    });
+
+    lookupBtn.addEventListener('click', async function() {
+        const raw = isbnLookupInput.value.trim();
+        if (!raw) return;
+
+        statusMsg.textContent = 'Ищем в локальной базе и Open Library API...';
+        statusMsg.classList.remove('hidden');
+        apiResultsList.classList.add('hidden');
+        apiResultsList.innerHTML = '';
+
+        try {
+            const resp = await fetch(`/api/lookup-isbn/?isbn=${encodeURIComponent(raw)}`);
+            const data = await resp.json();
+
+            if (data.status === 'exists') {
+                statusMsg.textContent = 'Книга с таким ISBN уже есть в каталоге — открыт режим приёмки поставки.';
+                newBookForm.classList.add('hidden');
+                restockForm.classList.remove('hidden');
+                document.getElementById('restockIsbn').value = data.isbn;
+                document.getElementById('restockTitle').textContent = data.title;
+                document.getElementById('restockCurrentQty').textContent = data.quantity;
+                document.getElementById('restockPrice').value = data.price;
+            } else if (data.status === 'found_api') {
+                statusMsg.textContent = 'Книга найдена! Поля и обложка заполнены автоматически — укажите цену и количество.';
+                fillNewBookForm(data);
+            } else if (data.status === 'search_results') {
+                statusMsg.textContent = 'Найдено в Open Library API. Выберите подходящее издание:';
+                apiResultsList.classList.remove('hidden');
+
+                data.results.forEach(function(item) {
+                    const row = document.createElement('div');
+                    row.className = 'api_result_item';
+
+                    const info = document.createElement('div');
+                    info.className = 'api_result_text';
+
+                    const titleEl = document.createElement('b');
+                    titleEl.textContent = item.title || 'Без названия';
+                    info.appendChild(titleEl);
+
+                    const metaEl = document.createElement('span');
+                    metaEl.textContent = ` — ${item.authors || 'Автор не указан'} (${item.year || '—'}, ISBN: ${item.isbn || 'нет'})`;
+                    info.appendChild(metaEl);
+
+                    const pickBtn = document.createElement('button');
+                    pickBtn.type = 'button';
+                    pickBtn.className = 'btn btn_burgundy btn_small';
+                    pickBtn.textContent = 'Выбрать';
+                    pickBtn.addEventListener('click', function() {
+                        fillNewBookForm(item);
+                        apiResultsList.classList.add('hidden');
+                        statusMsg.textContent = 'Карточка заполнена из Open Library! Проверьте ISBN, цену и остаток.';
+                    });
+
+                    row.appendChild(info);
+                    row.appendChild(pickBtn);
+                    apiResultsList.appendChild(row);
+                });
+            } else if (data.status === 'error') {
+                statusMsg.textContent = 'Ошибка соединения с внешним API (' + data.error + '). Заполните форму вручную.';
+                restockForm.classList.add('hidden');
+                newBookForm.classList.remove('hidden');
+            } else {
+                statusMsg.textContent = 'Книга не найдена по данному запросу — заполните карточку вручную.';
+                restockForm.classList.add('hidden');
+                newBookForm.classList.remove('hidden');
+                if (data.isbn) newIsbnInput.value = data.isbn;
+            }
+        } catch (err) {
+            statusMsg.textContent = 'Не удалось подключиться к серверу — проверьте консоль и заполните вручную.';
+            restockForm.classList.add('hidden');
+            newBookForm.classList.remove('hidden');
+        }
+    });
+});
+</script>
+{% endblock %}

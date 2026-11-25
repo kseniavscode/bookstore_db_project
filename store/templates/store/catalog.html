@@ -1,0 +1,82 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/catalog.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="catalog_header_bar">
+    <h2 class="page_heading">Каталог книг</h2>
+    <p class="catalog_subtitle">
+        Найдено книг: <b>{{ total_books }}</b> • Данные из <b>v_book_catalog</b> (индекс <b>idx_book_title</b>)
+    </p>
+</div>
+
+<div class="book_grid">
+    {% for book in books %}
+    <div class="book_card">
+        <div class="cover_wrapper">
+            {% if book.0 in has_cover_set %}
+                <img src="{% url 'book_cover' book.0 %}" alt="{{ book.1 }}" class="cover_img">
+            {% else %}
+                <img src="{% static 'img/default_cover.png' %}" alt="Обложка книги" class="cover_img">
+            {% endif %}
+        </div>
+        <h3 class="book_card_title">{{ book.1 }}</h3>
+        <p class="book_meta">Автор: {{ book.2 }}</p>
+        <p class="book_meta">Изд.: {{ book.3 }} ({{ book.4 }})</p>
+        <p class="book_meta">
+            {% if book.6 > 0 %}
+                В наличии: {{ book.6 }} шт.
+            {% else %}
+                Нет в наличии
+            {% endif %}
+        </p>
+
+        <div class="book_card_footer">
+            <span class="book_price">{{ book.5 }} BYN</span>
+            {% if request.session.username %}
+                {% if book.6 > 0 %}
+                    <a href="{% url 'add_to_cart' book.0 %}" class="btn btn_burgundy btn_small">В корзину</a>
+                {% else %}
+                    <a href="{% url 'add_to_waitlist' book.0 %}" class="btn btn_outline btn_small">В ожидание</a>
+                {% endif %}
+            {% else %}
+                <a href="{% url 'login' %}" class="btn btn_outline btn_small">Купить</a>
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty_catalog">
+        Книги по вашему запросу не найдены.
+    </div>
+    {% endfor %}
+</div>
+
+{% if page_obj.paginator.num_pages > 1 %}
+<nav class="pagination_bar">
+    {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query|urlencode }}{% endif %}" class="page_link">← Назад</a>
+    {% else %}
+        <span class="page_link page_disabled">← Назад</span>
+    {% endif %}
+
+    {% for p in page_range %}
+        {% if p == ellipsis %}
+            <span class="page_dots">…</span>
+        {% elif p == page_obj.number %}
+            <span class="page_link page_active">{{ p }}</span>
+        {% else %}
+            <a href="?page={{ p }}{% if query %}&q={{ query|urlencode }}{% endif %}" class="page_link">{{ p }}</a>
+        {% endif %}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query|urlencode }}{% endif %}" class="page_link">Вперёд →</a>
+    {% else %}
+        <span class="page_link page_disabled">Вперёд →</span>
+    {% endif %}
+</nav>
+{% endif %}
+{% endblock %}

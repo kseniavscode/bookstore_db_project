@@ -1,0 +1,71 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/staff.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="staff_toolbar">
+    <h2 class="page_heading">Управление сотрудниками и пользователями</h2>
+    <div class="staff_tabs">
+        <a href="{% url 'staff' %}?show=staff" class="btn {% if filter_mode == 'staff' %}btn_burgundy{% else %}btn_outline{% endif %}">Только сотрудники</a>
+        <a href="{% url 'staff' %}?show=all" class="btn {% if filter_mode == 'all' %}btn_burgundy{% else %}btn_outline{% endif %}">Все пользователи</a>
+    </div>
+</div>
+
+<table class="styled_table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Логин (Username)</th>
+            <th>Пароль (Password Hash)</th>
+            <th>Роль</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for u in users %}
+        <tr>
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="user_id" value="{{ u.id }}">
+                <td><b>{{ u.id }}</b></td>
+                <td><input type="text" name="username" value="{{ u.username }}" class="inline_input" required></td>
+                <td><input type="text" name="password_hash" value="{{ u.password_hash }}" class="inline_input" required></td>
+                <td>
+                    <select name="role" class="inline_input">
+                        <option value="Admin" {% if u.role == 'Admin' %}selected{% endif %}>Admin</option>
+                        <option value="Manager" {% if u.role == 'Manager' %}selected{% endif %}>Manager</option>
+                        <option value="Client" {% if u.role == 'Client' %}selected{% endif %}>Client</option>
+                    </select>
+                </td>
+                <td class="actions_cell">
+                    <button type="submit" name="act" value="update" class="btn btn_brown btn_small">Изменить</button>
+                    <button type="submit" name="act" value="delete" class="btn btn_burgundy btn_small">Удалить</button>
+                </td>
+            </form>
+        </tr>
+        {% endfor %}
+
+        <tr class="add_row">
+            <form method="POST">
+                {% csrf_token %}
+                <td><b>+ Новый</b></td>
+                <td><input type="text" name="username" placeholder="Логин нового сотрудника" class="inline_input" required></td>
+                <td><input type="text" name="password_hash" placeholder="Пароль" class="inline_input" required></td>
+                <td>
+                    <select name="role" class="inline_input">
+                        <option value="Manager">Manager</option>
+                        <option value="Admin">Admin</option>
+                        <option value="Client">Client</option>
+                    </select>
+                </td>
+                <td class="actions_cell">
+                    <button type="submit" name="act" value="add" class="btn btn_burgundy btn_small">Добавить</button>
+                </td>
+            </form>
+        </tr>
+    </tbody>
+</table>
+{% endblock %}

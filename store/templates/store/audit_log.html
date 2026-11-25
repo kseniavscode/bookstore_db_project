@@ -1,0 +1,33 @@
+{% extends 'store/base.html' %}
+
+{% block content %}
+<h2 style="color: #472801; margin-top: 0;">Audit Log (Журнал аудита безопасности)</h2>
+<p style="color: #666; font-size: 13px; margin-bottom: 20px;">Фиксация авторизаций, добавлений, изменений и удалений данных. Доступно только администратору.</p>
+
+<table class="admin_table">
+    <thead>
+        <tr>
+            <th>Timestamp</th>
+            <th>Username</th>
+            <th>Action</th>
+            <th>Object Type</th>
+            <th>Details</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for log in logs %}
+        <tr>
+            <td>{{ log.0 }}</td>
+            <td><b>{{ log.1 }}</b></td>
+            <td><span style="color: #7b5f0c; font-weight: bold;">{{ log.2 }}</span></td>
+            <td>{{ log.3 }}</td>
+            <td>{{ log.4 }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5" style="text-align: center; color: #666;">Журнал действий пуст.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

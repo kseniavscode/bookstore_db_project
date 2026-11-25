@@ -1,0 +1,289 @@
+/* Общие настройки, шрифты и палитра (Белый, Бордовый #610303, Тёмно-коричневый #472801) */
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background-color: #f6f4f2;
+    font-family: Cambria, Georgia, 'Times New Roman', serif;
+    color: #472801;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Верхнее меню (в стиле Bookshop.org / OZ) */
+.site_header {
+    background-color: #ffffff;
+    border-bottom: 2px solid #472801;
+    box-shadow: 0 4px 12px rgba(71, 40, 1, 0.12);
+    padding: 14px 32px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header_inner {
+    max-width: 1360px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+
+.brand_logo {
+    text-decoration: none;
+    color: #472801;
+    font-size: 28px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.brand_accent {
+    color: #610303;
+}
+
+.header_search_form {
+    flex: 1;
+    max-width: 520px;
+    display: flex;
+    gap: 8px;
+}
+
+.header_search_input {
+    flex: 1;
+    padding: 10px 16px;
+    border: 1.5px solid #472801;
+    border-radius: 24px;
+    background-color: #ffffff;
+    color: #472801;
+    font-family: inherit;
+    font-size: 15px;
+    outline: none;
+}
+
+.header_search_input:focus {
+    border-color: #610303;
+    box-shadow: 0 0 6px rgba(97, 3, 3, 0.2);
+}
+
+.header_actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* Вторичное меню для сотрудников и админа */
+.staff_subnav {
+    background-color: #472801;
+    padding: 10px 32px;
+    box-shadow: 0 4px 10px rgba(71, 40, 1, 0.15);
+}
+
+.staff_subnav_inner {
+    max-width: 1360px;
+    margin: 0 auto;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.subnav_label {
+    color: #ffffff;
+    font-size: 13px;
+    opacity: 0.85;
+    margin-right: 6px;
+}
+
+.subnav_link {
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 14px;
+    padding: 6px 14px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.subnav_link:hover {
+    background-color: #610303;
+    border-color: #610303;
+}
+
+/* Основной контейнер */
+.page_wrapper {
+    max-width: 1360px;
+    width: 100%;
+    margin: 28px auto;
+    padding: 0 24px;
+    flex: 1;
+}
+
+.content_card {
+    background-color: #ffffff;
+    border-radius: 8px;
+    padding: 28px;
+    box-shadow: 0 6px 18px rgba(71, 40, 1, 0.12);
+    border: 1px solid rgba(71, 40, 1, 0.12);
+}
+
+.page_heading {
+    margin-top: 0;
+    margin-bottom: 18px;
+    color: #472801;
+    border-bottom: 2px solid #610303;
+    padding-bottom: 10px;
+    font-size: 26px;
+}
+
+/* Кнопки */
+.btn {
+    display: inline-block;
+    padding: 9px 18px;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: bold;
+    text-decoration: none;
+    cursor: pointer;
+    border: 1.5px solid #472801;
+    transition: all 0.2s ease;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.btn_burgundy {
+    background-color: #610303;
+    color: #ffffff;
+    border-color: #610303;
+}
+
+.btn_burgundy:hover {
+    background-color: #472801;
+    border-color: #472801;
+    box-shadow: 0 4px 10px rgba(71, 40, 1, 0.25);
+}
+
+.btn_brown {
+    background-color: #472801;
+    color: #ffffff;
+    border-color: #472801;
+}
+
+.btn_brown:hover {
+    background-color: #610303;
+    border-color: #610303;
+}
+
+.btn_outline {
+    background-color: #ffffff;
+    color: #472801;
+    border-color: #472801;
+}
+
+.btn_outline:hover {
+    background-color: #610303;
+    color: #ffffff;
+    border-color: #610303;
+}
+
+.btn_small {
+    padding: 6px 12px;
+    font-size: 13px;
+}
+
+/* Системные уведомления */
+.alert_box {
+    padding: 12px 18px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(71, 40, 1, 0.1);
+}
+
+.alert_success {
+    background-color: #ffffff;
+    color: #472801;
+    border: 1.5px solid #472801;
+    border-left: 6px solid #472801;
+}
+
+.alert_error {
+    background-color: #ffffff;
+    color: #610303;
+    border: 1.5px solid #610303;
+    border-left: 6px solid #610303;
+}
+
+/* Общие стили таблиц */
+.styled_table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #ffffff;
+    box-shadow: 0 4px 12px rgba(71, 40, 1, 0.1);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.styled_table th {
+    background-color: #472801;
+    color: #ffffff;
+    text-align: left;
+    padding: 12px 14px;
+    font-size: 14px;
+}
+
+.styled_table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #e6dfd8;
+    color: #472801;
+    font-size: 14px;
+    vertical-align: middle;
+}
+
+.styled_table tbody tr:hover {
+    background-color: #faf7f5;
+}
+
+.badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    border: 1px solid #472801;
+    background-color: #ffffff;
+    color: #472801;
+}
+
+.badge_burgundy {
+    border-color: #610303;
+    color: #610303;
+}
+
+.user_greeting {
+    font-size: 14px;
+    color: #472801;
+}
+
+/* Подвал */
+.site_footer {
+    background-color: #ffffff;
+    border-top: 2px solid #472801;
+    text-align: center;
+    padding: 14px;
+    font-size: 13px;
+    color: #472801;
+    margin-top: 40px;
+}
